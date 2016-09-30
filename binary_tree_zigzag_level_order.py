@@ -15,27 +15,6 @@ class TreeNode(object):
         return rval
 
 
-def groupby(l, key):
-    rval = []
-
-    first = True
-    cur = []
-
-    for el in l:
-        if first:
-            first = False
-            cur.append(el)
-        else:
-            if key(el) == key(prev):
-                cur.append(el)
-            else:
-                rval.append(cur)
-                cur = [el]
-        prev = el
-    rval.append(cur)
-    return rval
-
-
 class Solution(object):
     def zigzagLevelOrder(self, root):
         """
@@ -46,23 +25,21 @@ class Solution(object):
         if root is None:
             return []
 
-        def level_order_r(t):
-            def level_order_r_helper(t, depth, width):
-                rval = [(depth, (-1 if depth % 2 else 1) * width, t.val)]
-                if t.left is not None:
-                    rval.extend(level_order_r_helper(t.left, depth + 1, (depth + 1) * width))
-                if t.right is not None:
-                    rval.extend(level_order_r_helper(t.right, depth + 1, (depth + 1) * width + 1))
-                return rval
-            return level_order_r_helper(t, 0, 0)
-
-        with_depth = level_order_r(root)
+        d = {}
+        q = [(root, 0, 0)]
+        while q:
+            t, depth, width = q.pop()
+            if depth in d:
+                d[depth].append(((-1 if depth % 2 else 1) * width, t.val))
+            else:
+                d[depth] = [((-1 if depth % 2 else 1) * width, t.val)]
+            if t.left is not None:
+                q.append((t.left, depth + 1, (depth + 1) * width))
+            if t.right is not None:
+                q.append((t.right, depth + 1, (depth + 1) * width + 1))
         rval = []
-        for all_in_level in groupby(sorted(with_depth), lambda x: x[0]):
-            this_level = []
-            for level, prio, val in all_in_level:
-                this_level.append(val)
-            rval.append(this_level)
+        for d, vals in sorted(d.items(), key=lambda x: x[0]):
+            rval.append([val for width, val in sorted(vals)])
         return rval
 
 
